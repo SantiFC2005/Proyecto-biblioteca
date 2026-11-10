@@ -2,13 +2,15 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
-package proyecto.biblioteca;
+package proyecto.biblioteca.Vista;
+
+import proyecto.biblioteca.Factory.Pantalla;
 
 /**
  *
  * @author PC
  */
-public class Estudiante extends javax.swing.JFrame {
+public class Estudiante extends javax.swing.JFrame implements Pantalla {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Estudiante.class.getName());
 
@@ -71,4 +73,8 @@ public class Estudiante extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     // End of variables declaration//GEN-END:variables
+    @Override
+    public void mostrar() {
+        this.setVisible(true);
+    }
 }

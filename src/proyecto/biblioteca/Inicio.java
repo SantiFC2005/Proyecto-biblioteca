@@ -3,6 +3,10 @@ package proyecto.biblioteca;
 
 import java.sql.*;
 import javax.swing.JOptionPane;
+import proyecto.biblioteca.Factory.PantallaCreator;
+import proyecto.biblioteca.Factory.AdminCreator;
+import proyecto.biblioteca.Factory.BibliotecarioCreator;
+import proyecto.biblioteca.Factory.EstudianteCreator;
 
 public class Inicio extends javax.swing.JFrame {
     
@@ -34,7 +38,6 @@ public class Inicio extends javax.swing.JFrame {
         contraseña_txt1 = new javax.swing.JTextField();
         jButton5 = new javax.swing.JButton();
         jLabel9 = new javax.swing.JLabel();
-        jLabel10 = new javax.swing.JLabel();
         jLabel11 = new javax.swing.JLabel();
         jPanel5 = new javax.swing.JPanel();
         jPanel6 = new javax.swing.JPanel();
@@ -78,11 +81,6 @@ public class Inicio extends javax.swing.JFrame {
         jLabel9.setFont(new java.awt.Font("Elephant", 0, 12)); // NOI18N
         jLabel9.setText("CONTRASEÑA");
 
-        jLabel10.setBackground(new java.awt.Color(255, 255, 255));
-        jLabel10.setFont(new java.awt.Font("Trebuchet MS", 1, 10)); // NOI18N
-        jLabel10.setForeground(new java.awt.Color(51, 153, 255));
-        jLabel10.setText("Olvidaste tu contraseña");
-
         jLabel11.setFont(new java.awt.Font("Elephant", 0, 12)); // NOI18N
         jLabel11.setText("CORREO");
 
@@ -99,15 +97,10 @@ public class Inicio extends javax.swing.JFrame {
                 .addContainerGap(29, Short.MAX_VALUE))
             .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(jPanel4Layout.createSequentialGroup()
+                    .addContainerGap()
                     .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(jPanel4Layout.createSequentialGroup()
-                            .addGap(87, 87, 87)
-                            .addComponent(jLabel10))
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
-                            .addContainerGap()
-                            .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jLabel11)
-                                .addComponent(correo_txt, javax.swing.GroupLayout.PREFERRED_SIZE, 193, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                        .addComponent(jLabel11)
+                        .addComponent(correo_txt, javax.swing.GroupLayout.PREFERRED_SIZE, 193, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addContainerGap(29, Short.MAX_VALUE)))
         );
         jPanel4Layout.setVerticalGroup(
@@ -126,9 +119,7 @@ public class Inicio extends javax.swing.JFrame {
                     .addComponent(jLabel11)
                     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                     .addComponent(correo_txt, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 55, Short.MAX_VALUE)
-                    .addComponent(jLabel10)
-                    .addGap(88, 88, 88)))
+                    .addContainerGap(156, Short.MAX_VALUE)))
         );
 
         jTabbedPane2.addTab("INICIAR SESION", jPanel4);
@@ -300,32 +291,44 @@ public class Inicio extends javax.swing.JFrame {
         
 
         String sql = "SELECT correo, contrasenia, id_rol FROM usuario WHERE correo ='"+correo+"'";
-       try{
-           Connection conexion = proyecto.biblioteca.Conexion.conectar();
-           PreparedStatement ps = conexion.prepareStatement(sql);
-           ResultSet rs = ps.executeQuery();
-           if (rs.next()){
-               //existe el usuario
-               String u=rs.getString("correo");
-               String p=rs.getString("contrasenia");
-               String priv=rs.getString("id_rol");
-               if(contrasenia.equals(p)){
-                   //Vamos al jframe usuario
-                    
-               }else{
-                   JOptionPane.showMessageDialog(null,"CONTRASENIA INCORRECTA");
-               }
-           }else{
-               //no existe el usuario
-               JOptionPane.showMessageDialog(null,"EL USUARIO NO EXISTE");
-           }
-       }catch(SQLException ex){
-           System.out.println(ex.toString());
-       }
-        
+       try {
+            Connection conexion = proyecto.biblioteca.Conexion.conectar();
+            PreparedStatement ps = conexion.prepareStatement(sql);
+            ps.setString(1, correo);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                //existe el usuario
+                String p = rs.getString("contrasenia");
+                String priv = rs.getString("id_rol");
+                if (contrasenia.equals(p)) {
+                    PantallaCreator creador = obtenerCreador(priv);
+                    if (creador != null) {
+                        creador.abrir();          
+                        this.setVisible(false);
+                    } else {
+                        JOptionPane.showMessageDialog(null, "ROL NO VALIDO");
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "CONTRASENIA INCORRECTA");
+                }
+            } else {
+                //no existe el usuario
+                JOptionPane.showMessageDialog(null, "EL USUARIO NO EXISTE");
+            }
+        } catch (SQLException ex) {
+            System.out.println(ex.toString());
+        }
+
 
     }//GEN-LAST:event_jButton5ActionPerformed
-
+    private PantallaCreator obtenerCreador(String idRol) {
+        switch(idRol) {
+            case "1": return new AdminCreator();
+            case "2": return new BibliotecarioCreator();
+            case "3": return new EstudianteCreator();
+            default:  return null;   // rol desconocido
+        }
+    }
     private void correo_txt2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_correo_txt2ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_correo_txt2ActionPerformed
@@ -376,7 +379,6 @@ public class Inicio extends javax.swing.JFrame {
     private javax.swing.JButton jButton5;
     private javax.swing.JButton jButton6;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
