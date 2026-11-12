@@ -13,7 +13,7 @@ public class Conexion {
     private static final String USUARIO = "postgres.tsgffqsqorqvjxwteffw";
     
     
-    private static final String CONTRASENA = "";
+    private static final String CONTRASENA = "?";
 
     public static Connection conectar() {
         Connection conexion = null;
