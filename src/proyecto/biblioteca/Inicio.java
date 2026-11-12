@@ -290,16 +290,25 @@ public class Inicio extends javax.swing.JFrame {
         String contrasenia = contraseña_txt1.getText();
         
 
-        String sql = "SELECT correo, contrasenia, id_rol FROM usuario WHERE correo ='"+correo+"'";
+        String sql = "SELECT correo, contrasenia, id_rol FROM usuario WHERE correo =?";
        try {
             Connection conexion = proyecto.biblioteca.Conexion.conectar();
+            
+            // Validamos que la conexión no haya fallado antes de consultar
+            if (conexion == null) {
+                JOptionPane.showMessageDialog(null, "No se pudo conectar con la base de datos.");
+                return;
+            }
+
             PreparedStatement ps = conexion.prepareStatement(sql);
             ps.setString(1, correo);
             ResultSet rs = ps.executeQuery();
+            
             if (rs.next()) {
-                //existe el usuario
+                // Existe el usuario
                 String p = rs.getString("contrasenia");
                 String priv = rs.getString("id_rol");
+                
                 if (contrasenia.equals(p)) {
                     PantallaCreator creador = obtenerCreador(priv);
                     if (creador != null) {
@@ -312,10 +321,17 @@ public class Inicio extends javax.swing.JFrame {
                     JOptionPane.showMessageDialog(null, "CONTRASENIA INCORRECTA");
                 }
             } else {
-                //no existe el usuario
+                // No existe el usuario
                 JOptionPane.showMessageDialog(null, "EL USUARIO NO EXISTE");
             }
+            
+         
+            rs.close();
+            ps.close();
+            conexion.close();
+            
         } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "Error en la consulta: " + ex.getMessage());
             System.out.println(ex.toString());
         }
 
@@ -326,7 +342,7 @@ public class Inicio extends javax.swing.JFrame {
             case "1": return new AdminCreator();
             case "2": return new BibliotecarioCreator();
             case "3": return new EstudianteCreator();
-            default:  return null;   // rol desconocido
+            default:  return null;   
         }
     }
     private void correo_txt2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_correo_txt2ActionPerformed

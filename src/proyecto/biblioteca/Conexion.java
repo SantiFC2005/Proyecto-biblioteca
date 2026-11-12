@@ -1,30 +1,33 @@
-package proyecto.biblioteca;
+package proyecto.biblioteca; 
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class Conexion {
-    private static final String URL = "jdbc:mariadb://localhost:3306/biblioteca_db";
-    private static final String USUARIO = "root";
-    private static final String CONTRASEÑA = ""; 
+
+   
+    private static final String URL = "jdbc:postgresql://aws-1-us-east-2.pooler.supabase.com:5432/postgres?sslmode=require";
+    
+  
+    private static final String USUARIO = "postgres.tsgffqsqorqvjxwteffw";
+    
+    
+    private static final String CONTRASENA = "Santi_200520";
 
     public static Connection conectar() {
         Connection conexion = null;
         try {
-            Class.forName("org.mariadb.jdbc.Driver");
-            conexion = DriverManager.getConnection(URL, USUARIO, CONTRASEÑA);
-            System.out.println("¡Conexión exitosa a MariaDB!");
+            Class.forName("org.postgresql.Driver");
+            // Aquí Java junta los 3 datos por separado
+            conexion = DriverManager.getConnection(URL, USUARIO, CONTRASENA);
+            System.out.println("¡Conexión exitosa a Supabase!");
         } catch (ClassNotFoundException e) {
-            System.out.println("Error: No se encontró el driver de MariaDB. " + e.getMessage());
+            System.out.println("Error: Falta agregar el archivo .jar de PostgreSQL. " + e.getMessage());
         } catch (SQLException e) {
-            System.out.println("Error de conexión a la base de datos: " + e.getMessage());
+            System.out.println("Error de Supabase: " + e.getMessage());
         }
         return conexion;
     }
-
-
-    public static void main(String[] args) {
-        conectar();
-    }
 }
+
