@@ -4,7 +4,7 @@ import proyecto.biblioteca.Vista.Admin;
 
 public class AdminCreator extends PantallaCreator {
     @Override
-    protected Pantalla crearPantalla() {
+    public Pantalla crearPantalla() {
         return new Admin();
     }
 }

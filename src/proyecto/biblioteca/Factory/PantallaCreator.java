@@ -1,12 +1,12 @@
 package proyecto.biblioteca.Factory;
 
+import proyecto.biblioteca.modelo.Usuario;
+
 public abstract class PantallaCreator {
+    public abstract Pantalla crearPantalla();
 
-
-    protected abstract Pantalla crearPantalla();
-
-    public void abrir() {
+    public void abrirPantalla(Usuario usuario) {
         Pantalla pantalla = crearPantalla();
-        pantalla.mostrar();
+        pantalla.mostrar(usuario);
     }
 }

@@ -4,7 +4,7 @@ import proyecto.biblioteca.Vista.Estudiante;
 
 public class EstudianteCreator extends PantallaCreator {
     @Override
-    protected Pantalla crearPantalla() {
+    public Pantalla crearPantalla() {
         return new Estudiante();
     }
 }

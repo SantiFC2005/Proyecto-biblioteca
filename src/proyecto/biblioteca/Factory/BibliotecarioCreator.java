@@ -4,7 +4,7 @@ import proyecto.biblioteca.Vista.Bibliotecario;
 
 public class BibliotecarioCreator extends PantallaCreator {
     @Override
-    protected Pantalla crearPantalla() {
+    public Pantalla crearPantalla() {
         return new Bibliotecario();
     }
 }

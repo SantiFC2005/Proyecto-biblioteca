@@ -1,47 +1,63 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
 package proyecto.biblioteca.Vista;
 
-import proyecto.biblioteca.Factory.Pantalla;
 import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.sql.SQLException;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.JOptionPane;
-import proyecto.biblioteca.Conexion;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
+
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JOptionPane;
 import javax.swing.RowFilter;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 
+import proyecto.biblioteca.Conexion;
+import proyecto.biblioteca.Factory.Pantalla;
+import proyecto.biblioteca.Strategy.ContextoPrestamo;
+import proyecto.biblioteca.modelo.Usuario;
+
 public class Estudiante extends javax.swing.JFrame implements Pantalla {
-    
+
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Estudiante.class.getName());
     private boolean cargandoDatos = true;
     private TableRowSorter<DefaultTableModel> sorter;
-
+    
+    // Sesión del usuario recibida desde el Factory Method
+    private Usuario usuarioActual;
+    // Patrón Strategy para reglas de préstamo (plazos y límites)
+    private final ContextoPrestamo contextoPrestamo = new ContextoPrestamo();
 
     public Estudiante() {
         initComponents();
+        setLocationRelativeTo(null);
         jComboBox2.setModel(new DefaultComboBoxModel<>(
-            new String[]{"Todos", "Disponible", "No disponible"}));
+                new String[]{"Todos", "Disponible", "No disponible"}));
 
-    jTextField1.getDocument().addDocumentListener(new DocumentListener() {
-        @Override public void insertUpdate(DocumentEvent e) { filtrar(); }
-        @Override public void removeUpdate(DocumentEvent e) { filtrar(); }
-        @Override public void changedUpdate(DocumentEvent e) { filtrar(); }
-    });
+        jTextField1.getDocument().addDocumentListener(new DocumentListener() {
+            @Override public void insertUpdate(DocumentEvent e) { filtrar(); }
+            @Override public void removeUpdate(DocumentEvent e) { filtrar(); }
+            @Override public void changedUpdate(DocumentEvent e) { filtrar(); }
+        });
 
-    cargarCategoriasEnComboBox();
-    cargarLibrosPorCategoria("TODAS LAS CATEGORÍAS");
+        cargarCategoriasEnComboBox();
+        cargarLibrosPorCategoria("TODAS LAS CATEGORÍAS");
+    }
+
+    // Método del Patrón Factory Method (Pantalla)
+    @Override
+    public void mostrar(Usuario usuario) {
+        this.usuarioActual = usuario;
+        this.setTitle("Biblioteca - " + usuario.getNombreCompleto() + " [" + usuario.getRol() + "]");
+        cargarLibrosPorCategoria((String) jComboBox1.getSelectedItem());
+        this.setVisible(true);
     }
 
     private void filtrar() {
@@ -71,8 +87,8 @@ public class Estudiante extends javax.swing.JFrame implements Pantalla {
 
         String sql = "SELECT nombre_categoria FROM public.categoria ORDER BY nombre_categoria ASC";
 
-        try (Connection con = Conexion.conectar();
-             Statement st = con.createStatement();
+        // Uso del Patrón Singleton en Conexion
+        try (Statement st = Conexion.getInstance().getConnection().createStatement();
              ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
                 jComboBox1.addItem(rs.getString("nombre_categoria"));
@@ -90,34 +106,35 @@ public class Estudiante extends javax.swing.JFrame implements Pantalla {
         sorter = null;
 
         String[] columnas = {"ID Libro", "Título", "Año", "Editorial", "Autor(es)", "Categoría(s)", "Estado"};
-        DefaultTableModel modeloTabla = new DefaultTableModel(null, columnas);
+        DefaultTableModel modeloTabla = new DefaultTableModel(null, columnas) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Evita edición accidental en la tabla
+            }
+        };
 
         String sql = "SELECT l.id_libro, l.titulo, l.anio_publicacion, e.nombre_editorial, " +
-                     "COALESCE(STRING_AGG(DISTINCT a.nombre, ', '), 'Sin autor') AS autor, " +
-                     "COALESCE(STRING_AGG(DISTINCT c.nombre_categoria, ', '), 'Sin categoría') AS categoria, " +
-                     "CASE WHEN EXISTS (SELECT 1 FROM public.prestamo p " +
-                     "    WHERE p.id_libro = l.id_libro " +
-                     "    AND (p.fecha_devolucion IS NULL OR p.estado_devolucion = 'Prestado')) " +
-                     "THEN 'Prestado' ELSE 'Disponible' END AS estado_libro " +
-                     "FROM public.libro l " +
-                     "LEFT JOIN public.editorial e ON l.id_editorial = e.id_editorial " +
-                     "LEFT JOIN public.libro_autor la ON l.id_libro = la.id_libro " +
-                     "LEFT JOIN public.autor a ON la.id_autor = a.id_autor " +
-                     "LEFT JOIN public.libro_categoria lc ON l.id_libro = lc.id_libro " +
-                     "LEFT JOIN public.categoria c ON lc.id_categoria = c.id_categoria ";
+                    "COALESCE(STRING_AGG(DISTINCT a.nombre, ', '), 'Sin autor') AS autor, " +
+                    "COALESCE(STRING_AGG(DISTINCT c.nombre_categoria, ', '), 'Sin categoría') AS categoria, " +
+                    "CASE WHEN EXISTS (SELECT 1 FROM public.prestamo p " +
+                    "    WHERE p.id_libro = l.id_libro " +
+                    "    AND (p.fecha_devolucion IS NULL OR p.estado_devolucion = 'Prestado')) " +
+                    "THEN 'Prestado' ELSE 'Disponible' END AS estado_libro " +
+                    "FROM public.libro l " +
+                    "LEFT JOIN public.editorial e ON l.id_editorial = e.id_editorial " +
+                    "LEFT JOIN public.libro_autor la ON l.id_libro = la.id_libro " +
+                    "LEFT JOIN public.autor a ON la.id_autor = a.id_autor " +
+                    "LEFT JOIN public.libro_categoria lc ON l.id_libro = lc.id_libro " +
+                    "LEFT JOIN public.categoria c ON lc.id_categoria = c.id_categoria ";
 
         boolean filtrarCategoria = categoriaSeleccionada != null
                 && !categoriaSeleccionada.equals("TODAS LAS CATEGORÍAS");
         if (filtrarCategoria) {
-            sql += " WHERE l.id_libro IN (SELECT lc2.id_libro FROM public.libro_categoria lc2 " +
-                   "JOIN public.categoria c2 ON lc2.id_categoria = c2.id_categoria " +
-                   "WHERE c2.nombre_categoria = ?)";
+            sql += " WHERE l.id_libro IN (SELECT lc2.id_libro FROM public.libro_categoria lc2 " +"JOIN public.categoria c2 ON lc2.id_categoria = c2.id_categoria " +"WHERE c2.nombre_categoria = ?)";
         }
         sql += " GROUP BY l.id_libro, l.titulo, l.anio_publicacion, e.nombre_editorial ORDER BY l.id_libro";
 
-        try (Connection con = Conexion.conectar();
-             PreparedStatement pst = con.prepareStatement(sql)) {
-
+        try (PreparedStatement pst = Conexion.getInstance().getConnection().prepareStatement(sql)) {
             if (filtrarCategoria) {
                 pst.setString(1, categoriaSeleccionada);
             }
@@ -147,57 +164,112 @@ public class Estudiante extends javax.swing.JFrame implements Pantalla {
         filtrar();
     }
 
-    // ===== PRESTAR =====
     private void prestarLibro() {
         int fila = jTable1.getSelectedRow();
         if (fila == -1) {
-            JOptionPane.showMessageDialog(this, "Selecciona un libro de la tabla.");
+            JOptionPane.showMessageDialog(this, "Selecciona un recurso de la tabla.");
             return;
         }
         int filaModelo = jTable1.convertRowIndexToModel(fila);
         DefaultTableModel modelo = (DefaultTableModel) jTable1.getModel();
         int idLibro = Integer.parseInt(modelo.getValueAt(filaModelo, 0).toString());
         String titulo = modelo.getValueAt(filaModelo, 1).toString();
+        String categoria = modelo.getValueAt(filaModelo, 5).toString();
         String estado = modelo.getValueAt(filaModelo, 6).toString();
 
         if (!"Disponible".equals(estado)) {
-            JOptionPane.showMessageDialog(this, "El libro \"" + titulo + "\" no está disponible.",
+            JOptionPane.showMessageDialog(this, "El recurso \"" + titulo + "\" no está disponible.",
                     "No disponible", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        String documento = JOptionPane.showInputDialog(this, "Documento del usuario:");
-        if (documento == null || documento.trim().isEmpty()) return;
 
-        try (Connection con = Conexion.conectar()) {
-            int idUsuario;
-            String nombreUsuario;
-            try (PreparedStatement pst = con.prepareStatement(
-                    "SELECT id_usuario, nombre FROM public.usuario WHERE documento = ?")) {
-                pst.setString(1, documento.trim());
-                try (ResultSet rs = pst.executeQuery()) {
-                    if (!rs.next()) {
-                        JOptionPane.showMessageDialog(this, "No existe un usuario con ese documento.",
-                                "Error", JOptionPane.ERROR_MESSAGE);
-                        return;
+        int idUsuario;
+        String nombreUsuario;
+        Connection con = Conexion.getInstance().getConnection();
+
+        try {
+            if (usuarioActual != null) {
+                idUsuario = Integer.parseInt(usuarioActual.getId());
+                nombreUsuario = usuarioActual.getNombreCompleto();
+            } else {
+                String documento = JOptionPane.showInputDialog(this, "Documento del usuario:");
+                if (documento == null || documento.trim().isEmpty()) return;
+
+                try (PreparedStatement pst = con.prepareStatement(
+                        "SELECT id_usuario, nombre, rol, bloqueado FROM public.usuario WHERE documento = ?")) {
+                    pst.setString(1, documento.trim());
+                    try (ResultSet rs = pst.executeQuery()) {
+                        if (!rs.next()) {
+                            JOptionPane.showMessageDialog(this, "No existe un usuario con ese documento.",
+                                    "Error", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+                        if (rs.getBoolean("bloqueado")) {
+                            JOptionPane.showMessageDialog(this, "Usuario bloqueado por el administrador.",
+                                    "Acceso Denegado", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+                        idUsuario = rs.getInt("id_usuario");
+                        nombreUsuario = rs.getString("nombre");
+                        String rol = rs.getString("rol");
+                        int dias = "DOCENTE".equalsIgnoreCase(rol) ? 30 : 7;
+                        int max = "DOCENTE".equalsIgnoreCase(rol) ? 6 : 3;
+                        usuarioActual = new Usuario(String.valueOf(idUsuario), documento, nombreUsuario, "", rol, false, dias, max);
                     }
-                    idUsuario = rs.getInt("id_usuario");
-                    nombreUsuario = rs.getString("nombre");
                 }
             }
 
+            // 1. Verificar si tiene multas pendientes
+            try (PreparedStatement pstMulta = con.prepareStatement(
+                    "SELECT COUNT(*) FROM public.multa WHERE id_usuario = ? AND estado = 'PENDIENTE'")) {
+                pstMulta.setInt(1, idUsuario);
+                try (ResultSet rs = pstMulta.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        JOptionPane.showMessageDialog(this,
+                                "No puedes realizar préstamos porque tienes multas PENDIENTES.",
+                                "Usuario Sancionado", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                }
+            }
+
+            // 2. Contar préstamos activos actuales del usuario
+            int prestamosActivos = 0;
+            try (PreparedStatement pstActivos = con.prepareStatement(
+                    "SELECT COUNT(*) FROM public.prestamo WHERE id_usuario = ? AND estado_devolucion = 'Prestado'")) {
+                pstActivos.setInt(1, idUsuario);
+                try (ResultSet rs = pstActivos.executeQuery()) {
+                    if (rs.next()) prestamosActivos = rs.getInt(1);
+                }
+            }
+
+            // 3. Aplicar Patrón Strategy según la categoría/tipo de recurso y el rol del usuario
+            contextoPrestamo.seleccionarEstrategiaPorTipo(categoria);
+            if (!contextoPrestamo.validarPermisoPrestamo(usuarioActual, prestamosActivos)) {
+                JOptionPane.showMessageDialog(this,
+                        "Has alcanzado el límite máximo de préstamos simultáneos (" + usuarioActual.getMaxRecursosSimultaneos() + ") o tu cuenta está bloqueada.",
+                        "Límite Excedido", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            LocalDateTime fechaVencimiento = contextoPrestamo.obtenerFechaVencimiento(usuarioActual);
+
             int opcion = JOptionPane.showConfirmDialog(this,
-                    "¿Confirmas el préstamo de \"" + titulo + "\" a " + nombreUsuario + "?",
+                    "¿Confirmas el préstamo de \"" + titulo + "\" a " + nombreUsuario + "?\n" +
+                    "Rol: " + usuarioActual.getRol() + " | Plazo: " + usuarioActual.getDiasPlazoBase() + " días\n" +
+                    "Fecha límite de devolución: " + fechaVencimiento.toLocalDate(),
                     "Confirmar préstamo", JOptionPane.YES_NO_OPTION);
             if (opcion != JOptionPane.YES_OPTION) return;
 
+            // Verificar concurrencia antes de insertar
             try (PreparedStatement pst = con.prepareStatement(
                     "SELECT 1 FROM public.prestamo WHERE id_libro = ? " +
                     "AND (fecha_devolucion IS NULL OR estado_devolucion = 'Prestado')")) {
                 pst.setInt(1, idLibro);
                 try (ResultSet rs = pst.executeQuery()) {
                     if (rs.next()) {
-                        JOptionPane.showMessageDialog(this, "Ese libro ya fue prestado a otra persona.",
+                        JOptionPane.showMessageDialog(this, "Ese recurso ya fue prestado a otra persona.",
                                 "No disponible", JOptionPane.WARNING_MESSAGE);
                         cargarLibrosPorCategoria((String) jComboBox1.getSelectedItem());
                         return;
@@ -205,17 +277,19 @@ public class Estudiante extends javax.swing.JFrame implements Pantalla {
                 }
             }
 
+            // Registrar préstamo con su fecha_vencimiento calculada por Strategy
             try (PreparedStatement pst = con.prepareStatement(
-                    "INSERT INTO public.prestamo (id_libro, id_usuario, fecha_prestamo, estado_devolucion) " +
-                    "VALUES (?, ?, NOW(), 'Prestado')")) {
+                    "INSERT INTO public.prestamo (id_libro, id_usuario, fecha_prestamo, fecha_vencimiento, estado_devolucion) " +
+                    "VALUES (?, ?, NOW(), ?, 'Prestado')")) {
                 pst.setInt(1, idLibro);
                 pst.setInt(2, idUsuario);
+                pst.setTimestamp(3, Timestamp.valueOf(fechaVencimiento));
                 pst.executeUpdate();
             }
 
             JOptionPane.showMessageDialog(this,
-                    "Préstamo registrado: \"" + titulo + "\" a " + nombreUsuario + ".",
-                    "Listo", JOptionPane.INFORMATION_MESSAGE);
+                    "Préstamo registrado exitosamente.\nDevolver antes del: " + fechaVencimiento.toLocalDate(),
+                    "Préstamo Exitoso", JOptionPane.INFORMATION_MESSAGE);
             cargarLibrosPorCategoria((String) jComboBox1.getSelectedItem());
 
         } catch (SQLException e) {
@@ -229,7 +303,7 @@ public class Estudiante extends javax.swing.JFrame implements Pantalla {
     private void devolverLibro() {
         int fila = jTable1.getSelectedRow();
         if (fila == -1) {
-            JOptionPane.showMessageDialog(this, "Selecciona un libro de la tabla.");
+            JOptionPane.showMessageDialog(this, "Selecciona un recurso de la tabla.");
             return;
         }
         int filaModelo = jTable1.convertRowIndexToModel(fila);
@@ -239,32 +313,43 @@ public class Estudiante extends javax.swing.JFrame implements Pantalla {
         String estado = modelo.getValueAt(filaModelo, 6).toString();
 
         if (!"Prestado".equals(estado)) {
-            JOptionPane.showMessageDialog(this, "El libro \"" + titulo + "\" no está prestado.",
+            JOptionPane.showMessageDialog(this, "El recurso \"" + titulo + "\" no está prestado.",
                     "Aviso", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
 
-        try (Connection con = Conexion.conectar()) {
+        Connection con = Conexion.getInstance().getConnection();
+        try {
             int idPrestamo;
+            int idUsuarioPrestamo;
             String nombreUsuario;
             try (PreparedStatement pst = con.prepareStatement(
-                    "SELECT p.id_prestamo, u.nombre FROM public.prestamo p " +
+                    "SELECT p.id_prestamo, p.id_usuario, u.nombre FROM public.prestamo p " +
                     "LEFT JOIN public.usuario u ON p.id_usuario = u.id_usuario " +
                     "WHERE p.id_libro = ? AND (p.fecha_devolucion IS NULL OR p.estado_devolucion = 'Prestado') " +
                     "ORDER BY p.fecha_prestamo DESC LIMIT 1")) {
                 pst.setInt(1, idLibro);
                 try (ResultSet rs = pst.executeQuery()) {
                     if (!rs.next()) {
-                        JOptionPane.showMessageDialog(this, "No se encontró un préstamo activo para este libro.");
+                        JOptionPane.showMessageDialog(this, "No se encontró un préstamo activo para este recurso.");
                         return;
                     }
                     idPrestamo = rs.getInt("id_prestamo");
+                    idUsuarioPrestamo = rs.getInt("id_usuario");
                     nombreUsuario = rs.getString("nombre");
                 }
             }
 
+            // Validar que el usuario solo devuelva sus propios préstamos
+            if (usuarioActual != null && Integer.parseInt(usuarioActual.getId()) != idUsuarioPrestamo) {
+                JOptionPane.showMessageDialog(this,
+                        "Este recurso está prestado a " + nombreUsuario + ". Solo el titular puede devolverlo.",
+                        "Acción no permitida", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
             int opcion = JOptionPane.showConfirmDialog(this,
-                    "¿Confirmas la devolución de \"" + titulo + "\" prestado a " + nombreUsuario + "?",
+                    "¿Confirmas la devolución de \"" + titulo + "\"?",
                     "Confirmar devolución", JOptionPane.YES_NO_OPTION);
             if (opcion != JOptionPane.YES_OPTION) return;
 
@@ -442,15 +527,7 @@ public class Estudiante extends javax.swing.JFrame implements Pantalla {
         devolverLibro();
     }//GEN-LAST:event_jButton4ActionPerformed
 
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -461,9 +538,7 @@ public class Estudiante extends javax.swing.JFrame implements Pantalla {
         } catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException ex) {
             logger.log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
 
-        /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> new Estudiante().setVisible(true));
     }
 
@@ -480,9 +555,4 @@ public class Estudiante extends javax.swing.JFrame implements Pantalla {
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTable jTable1;
     private javax.swing.JTextField jTextField1;
-    // End of variables declaration//GEN-END:variables
-    @Override
-    public void mostrar() {
-        this.setVisible(true);
-    }
 }
