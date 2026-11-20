@@ -2,9 +2,15 @@ package proyecto.biblioteca;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+
 import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
+
 import proyecto.biblioteca.Factory.AdminCreator;
 import proyecto.biblioteca.Factory.BibliotecarioCreator;
 import proyecto.biblioteca.Factory.EstudianteCreator;
@@ -461,7 +467,7 @@ public class Inicio extends javax.swing.JFrame {
                             maxSimultaneos = 0;
                             break;
                         case "2":
-                            nombreRol = "DOCENTE";
+                            nombreRol = "BIBLIOTECARIO";
                             diasPlazo = 30;
                             maxSimultaneos = 6;
                             break;
@@ -513,7 +519,7 @@ public class Inicio extends javax.swing.JFrame {
             case "1":
                 return new AdminCreator();
             case "2":
-                return new DocenteCreator();
+                return new BibliotecarioCreator();
             case "3":
                 return new EstudianteCreator();
             default:

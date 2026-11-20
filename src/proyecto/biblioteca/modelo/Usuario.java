@@ -5,12 +5,14 @@ public class Usuario {
     private String codigoInstitucional;
     private String nombreCompleto;
     private String email;
-    private String rol; // "ESTUDIANTE", "DOCENTE", "ADMINISTRADOR"
+    private String rol;
     private boolean bloqueado;
     private int diasPlazoBase;
     private int maxRecursosSimultaneos;
 
-    public Usuario(String id, String codigoInstitucional, String nombreCompleto, String email, String rol, boolean bloqueado, int diasPlazoBase, int maxRecursosSimultaneos) {
+    public Usuario(String id, String codigoInstitucional, String nombreCompleto,
+                   String email, String rol, boolean bloqueado,
+                   int diasPlazoBase, int maxRecursosSimultaneos) {
         this.id = id;
         this.codigoInstitucional = codigoInstitucional;
         this.nombreCompleto = nombreCompleto;
@@ -21,7 +23,6 @@ public class Usuario {
         this.maxRecursosSimultaneos = maxRecursosSimultaneos;
     }
 
-    // Getters
     public String getId() { return id; }
     public String getCodigoInstitucional() { return codigoInstitucional; }
     public String getNombreCompleto() { return nombreCompleto; }

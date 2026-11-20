@@ -33,7 +33,6 @@ public class Admin extends javax.swing.JFrame implements Pantalla {
 
     private Usuario usuarioActual;
 
-    
     private JTable tablaUsuarios;
     private DefaultTableModel modeloUsuarios;
     private JTextField txtNombre, txtDocumento, txtCorreo, txtContrasenia, txtTelefono;
@@ -66,7 +65,6 @@ public class Admin extends javax.swing.JFrame implements Pantalla {
     private void construirInterfazAdmin() {
         getContentPane().removeAll();
         setLayout(new BorderLayout());
-
 
         JPanel panelSuperior = new JPanel(new BorderLayout());
         panelSuperior.setBackground(new Color(31, 58, 95));
@@ -110,7 +108,7 @@ public class Admin extends javax.swing.JFrame implements Pantalla {
         txtCorreo = new JTextField();
         txtContrasenia = new JTextField();
         txtTelefono = new JTextField();
-        cmbRol = new JComboBox<>(new String[]{"3 - ESTUDIANTE", "2 - DOCENTE", "1 - ADMINISTRADOR"});
+        cmbRol = new JComboBox<>(new String[]{"3 - ESTUDIANTE", "2 - BIBLIOTECARIO", "1 - ADMINISTRADOR"});
 
         formPanel.add(new JLabel("Nombre Completo:"));
         formPanel.add(new JLabel("Documento / Cédula:"));
@@ -218,7 +216,7 @@ public class Admin extends javax.swing.JFrame implements Pantalla {
              ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
                 String idRol = rs.getString("id_rol");
-                String rolTexto = "1".equals(idRol) ? "ADMINISTRADOR" : ("2".equals(idRol) ? "DOCENTE" : "ESTUDIANTE");
+                String rolTexto = "1".equals(idRol) ? "ADMINISTRADOR" : ("2".equals(idRol) ? "BIBLIOTECARIO" : "ESTUDIANTE");
                 boolean bloqueado = rs.getBoolean("bloqueado");
                 modeloUsuarios.addRow(new Object[]{
                     rs.getInt("id_usuario"),
@@ -337,7 +335,7 @@ public class Admin extends javax.swing.JFrame implements Pantalla {
     }
 
     private void aplicarMulta() {
-        String documento = JOptionPane.showInputDialog(this, "Documento del Estudiante o Docente a multar:");
+        String documento = JOptionPane.showInputDialog(this, "Documento del Estudiante o Bibliotecario a multar:");
         if (documento == null || documento.trim().isEmpty()) return;
 
         Connection con = Conexion.getInstance().getConnection();
@@ -446,7 +444,4 @@ public class Admin extends javax.swing.JFrame implements Pantalla {
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(() -> new Admin().setVisible(true));
     }
-
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    // End of variables declaration//GEN-END:variables
 }

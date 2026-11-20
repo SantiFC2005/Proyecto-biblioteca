@@ -1,6 +1,9 @@
 package proyecto.biblioteca.Singleton;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import proyecto.biblioteca.Conexion;
@@ -22,23 +25,28 @@ public class CatalogoRecursos {
         return instancia;
     }
 
-    // Recarga desde Supabase para mantener consistencia
+    // Recarga desde tus tablas reales de Supabase (public.libro y public.prestamo)
     public void sincronizarConBD() {
         listaRecursos.clear();
-        String sql = "SELECT r.id, r.codigo_inventario, r.titulo_nombre, t.nombre AS tipo, r.estado " +"FROM recursos r JOIN tipos_recurso t ON r.tipo_recurso_id = t.id";
-        try (Statement st = Conexion.getInstance().getConnection().createStatement();
-            ResultSet rs = st.executeQuery(sql)) {
+        String sql = "SELECT l.id_libro, l.titulo, " +"COALESCE(STRING_AGG(DISTINCT c.nombre_categoria, ', '), 'LIBRO') AS tipo, " +"CASE WHEN EXISTS (SELECT 1 FROM public.prestamo p " +"    WHERE p.id_libro = l.id_libro " +"    AND (p.fecha_devolucion IS NULL OR p.estado_devolucion = 'Prestado')) " +"THEN 'PRESTADO' ELSE 'DISPONIBLE' END AS estado " +"FROM public.libro l " +"LEFT JOIN public.libro_categoria lc ON l.id_libro = lc.id_libro " +"LEFT JOIN public.categoria c ON lc.id_categoria = c.id_categoria " +"GROUP BY l.id_libro, l.titulo ORDER BY l.id_libro";
+
+        Connection con = Conexion.getInstance().getConnection();
+        if (con == null) return;
+
+        try (Statement st = con.createStatement();
+        ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
+                String id = String.valueOf(rs.getInt("id_libro"));
                 listaRecursos.add(new Recurso(
-                    rs.getString("id"),
-                    rs.getString("codigo_inventario"),
-                    rs.getString("titulo_nombre"),
+                    id,
+                    "LIB-" + id,
+                    rs.getString("titulo"),
                     rs.getString("tipo"),
                     rs.getString("estado")
                 ));
             }
         } catch (SQLException e) {
-            System.err.println("Error cargando catálogo: " + e.getMessage());
+            System.err.println("Error cargando catálogo único: " + e.getMessage());
         }
     }
 

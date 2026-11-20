@@ -4,8 +4,8 @@ public class Recurso {
     private String id;
     private String codigoInventario;
     private String tituloNombre;
-    private String tipoRecurso; // "LIBRO", "EQUIPO_COMPUTO", "MATERIAL_AUDIOVISUAL"
-    private String estado;      // "DISPONIBLE", "PRESTADO", "MANTENIMIENTO"
+    private String tipoRecurso;
+    private String estado;
 
     public Recurso(String id, String codigoInventario, String tituloNombre, String tipoRecurso, String estado) {
         this.id = id;
