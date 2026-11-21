@@ -9,8 +9,8 @@ public class Conexion {
     private Connection connection;
 
     // Usa la URL del Session Pooler de Supabase (puerto 5432)
-    private static final String URL = "jdbc:postgresql://aws-0-us-east-1.pooler.supabase.com:5432/postgres";
-    private static final String USER = "postgres.TU_PROJECT_REF";
+    private static final String URL = "jdbc:postgresql://aws-1-us-east-2.pooler.supabase.com:5432/postgres";
+    private static final String USER = "postgres.tsgffqsqorqvjxwteffw";
     private static final String PASSWORD = "Santi_200520";
 
     private Conexion() {

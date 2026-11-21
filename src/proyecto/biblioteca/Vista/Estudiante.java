@@ -109,28 +109,30 @@ public class Estudiante extends javax.swing.JFrame implements Pantalla {
         DefaultTableModel modeloTabla = new DefaultTableModel(null, columnas) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; // Evita edición accidental en la tabla
+                return false;
             }
         };
 
         String sql = "SELECT l.id_libro, l.titulo, l.anio_publicacion, e.nombre_editorial, " +
-                    "COALESCE(STRING_AGG(DISTINCT a.nombre, ', '), 'Sin autor') AS autor, " +
-                    "COALESCE(STRING_AGG(DISTINCT c.nombre_categoria, ', '), 'Sin categoría') AS categoria, " +
-                    "CASE WHEN EXISTS (SELECT 1 FROM public.prestamo p " +
-                    "    WHERE p.id_libro = l.id_libro " +
-                    "    AND (p.fecha_devolucion IS NULL OR p.estado_devolucion = 'Prestado')) " +
-                    "THEN 'Prestado' ELSE 'Disponible' END AS estado_libro " +
-                    "FROM public.libro l " +
-                    "LEFT JOIN public.editorial e ON l.id_editorial = e.id_editorial " +
-                    "LEFT JOIN public.libro_autor la ON l.id_libro = la.id_libro " +
-                    "LEFT JOIN public.autor a ON la.id_autor = a.id_autor " +
-                    "LEFT JOIN public.libro_categoria lc ON l.id_libro = lc.id_libro " +
-                    "LEFT JOIN public.categoria c ON lc.id_categoria = c.id_categoria ";
+                     "COALESCE(STRING_AGG(DISTINCT a.nombre, ', '), 'Sin autor') AS autor, " +
+                     "COALESCE(STRING_AGG(DISTINCT c.nombre_categoria, ', '), 'Sin categoría') AS categoria, " +
+                     "CASE WHEN EXISTS (SELECT 1 FROM public.prestamo p " +
+                     "    WHERE p.id_libro = l.id_libro " +
+                     "    AND (p.fecha_devolucion IS NULL OR p.estado_devolucion = 'Prestado')) " +
+                     "THEN 'Prestado' ELSE 'Disponible' END AS estado_libro " +
+                     "FROM public.libro l " +
+                     "LEFT JOIN public.editorial e ON l.id_editorial = e.id_editorial " +
+                     "LEFT JOIN public.libro_autor la ON l.id_libro = la.id_libro " +
+                     "LEFT JOIN public.autor a ON la.id_autor = a.id_autor " +
+                     "LEFT JOIN public.libro_categoria lc ON l.id_libro = lc.id_libro " +
+                     "LEFT JOIN public.categoria c ON lc.id_categoria = c.id_categoria ";
 
         boolean filtrarCategoria = categoriaSeleccionada != null
                 && !categoriaSeleccionada.equals("TODAS LAS CATEGORÍAS");
         if (filtrarCategoria) {
-            sql += " WHERE l.id_libro IN (SELECT lc2.id_libro FROM public.libro_categoria lc2 " +"JOIN public.categoria c2 ON lc2.id_categoria = c2.id_categoria " +"WHERE c2.nombre_categoria = ?)";
+            sql += " WHERE l.id_libro IN (SELECT lc2.id_libro FROM public.libro_categoria lc2 " +
+                   "JOIN public.categoria c2 ON lc2.id_categoria = c2.id_categoria " +
+                   "WHERE c2.nombre_categoria = ?)";
         }
         sql += " GROUP BY l.id_libro, l.titulo, l.anio_publicacion, e.nombre_editorial ORDER BY l.id_libro";
 
@@ -183,7 +185,6 @@ public class Estudiante extends javax.swing.JFrame implements Pantalla {
             return;
         }
 
-
         int idUsuario;
         String nombreUsuario;
         Connection con = Conexion.getInstance().getConnection();
@@ -197,7 +198,7 @@ public class Estudiante extends javax.swing.JFrame implements Pantalla {
                 if (documento == null || documento.trim().isEmpty()) return;
 
                 try (PreparedStatement pst = con.prepareStatement(
-                        "SELECT id_usuario, nombre, rol, bloqueado FROM public.usuario WHERE documento = ?")) {
+                        "SELECT id_usuario, nombre, id_rol, bloqueado FROM public.usuario WHERE documento = ?")) {
                     pst.setString(1, documento.trim());
                     try (ResultSet rs = pst.executeQuery()) {
                         if (!rs.next()) {
@@ -212,22 +213,23 @@ public class Estudiante extends javax.swing.JFrame implements Pantalla {
                         }
                         idUsuario = rs.getInt("id_usuario");
                         nombreUsuario = rs.getString("nombre");
-                        String rol = rs.getString("rol");
-                        int dias = "DOCENTE".equalsIgnoreCase(rol) ? 30 : 7;
-                        int max = "DOCENTE".equalsIgnoreCase(rol) ? 6 : 3;
-                        usuarioActual = new Usuario(String.valueOf(idUsuario), documento, nombreUsuario, "", rol, false, dias, max);
+                        String idRol = rs.getString("id_rol");
+                        String rolNombre = "2".equals(idRol) ? "BIBLIOTECARIO" : "ESTUDIANTE";
+                        int dias = "2".equals(idRol) ? 30 : 7;
+                        int max = "2".equals(idRol) ? 6 : 3;
+                        usuarioActual = new Usuario(String.valueOf(idUsuario), documento, nombreUsuario, "", rolNombre, false, dias, max);
                     }
                 }
             }
 
-            // 1. Verificar si tiene multas pendientes
+            // 1. Verificar si tiene sanciones pendientes (tabla public.sancion sin tilde)
             try (PreparedStatement pstMulta = con.prepareStatement(
-                    "SELECT COUNT(*) FROM public.multa WHERE id_usuario = ? AND estado = 'PENDIENTE'")) {
+                    "SELECT COUNT(*) FROM public.sancion WHERE id_usuario = ? AND estado = 'PENDIENTE'")) {
                 pstMulta.setInt(1, idUsuario);
                 try (ResultSet rs = pstMulta.executeQuery()) {
                     if (rs.next() && rs.getInt(1) > 0) {
                         JOptionPane.showMessageDialog(this,
-                                "No puedes realizar préstamos porque tienes multas PENDIENTES.",
+                                "No puedes realizar préstamos porque tienes sanciones PENDIENTES.",
                                 "Usuario Sancionado", JOptionPane.ERROR_MESSAGE);
                         return;
                     }
@@ -555,4 +557,5 @@ public class Estudiante extends javax.swing.JFrame implements Pantalla {
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTable jTable1;
     private javax.swing.JTextField jTextField1;
+    // End of variables declaration//GEN-END:variables
 }

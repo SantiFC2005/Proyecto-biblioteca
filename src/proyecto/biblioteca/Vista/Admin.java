@@ -172,7 +172,7 @@ public class Admin extends javax.swing.JFrame implements Pantalla {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        String[] cols = {"ID Multa", "ID Usuario", "Usuario", "Documento", "Monto ($)", "Motivo", "Estado", "Fecha"};
+        String[] cols = {"ID Sanción", "ID Usuario", "Usuario", "Documento", "Monto ($)", "Motivo", "Estado", "Fecha"};
         modeloMultas = new DefaultTableModel(null, cols) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -312,25 +312,25 @@ public class Admin extends javax.swing.JFrame implements Pantalla {
 
     private void cargarTablaMultas() {
         modeloMultas.setRowCount(0);
-        String sql = "SELECT m.id_multa, u.id_usuario, u.nombre, u.documento, m.monto, m.motivo, m.estado, m.fecha_registro " +
-                     "FROM public.multa m JOIN public.usuario u ON m.id_usuario = u.id_usuario " +
-                     "ORDER BY m.id_multa DESC";
+        String sql = "SELECT s.id_sancion, u.id_usuario, u.nombre, u.documento, s.valor, s.tipo, s.estado, s.fecha_registro " +
+                     "FROM public.sancion s JOIN public.usuario u ON s.id_usuario = u.id_usuario " +
+                     "ORDER BY s.id_sancion DESC";
         try (Statement st = Conexion.getInstance().getConnection().createStatement();
              ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
                 modeloMultas.addRow(new Object[]{
-                    rs.getInt("id_multa"),
+                    rs.getInt("id_sancion"),
                     rs.getInt("id_usuario"),
                     rs.getString("nombre"),
                     rs.getString("documento"),
-                    rs.getBigDecimal("monto"),
-                    rs.getString("motivo"),
+                    rs.getBigDecimal("valor"),
+                    rs.getString("tipo"),
                     rs.getString("estado"),
                     rs.getTimestamp("fecha_registro")
                 });
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error cargando multas: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Error cargando sanciones: " + e.getMessage());
         }
     }
 
@@ -371,7 +371,7 @@ public class Admin extends javax.swing.JFrame implements Pantalla {
             if (motivo == null || motivo.trim().isEmpty()) return;
 
             try (PreparedStatement ps = con.prepareStatement(
-                    "INSERT INTO public.multa (id_usuario, monto, motivo, estado) VALUES (?, ?, ?, 'PENDIENTE')")) {
+                    "INSERT INTO public.sancion (id_usuario, valor, tipo, estado) VALUES (?, ?, ?, 'PENDIENTE')")) {
                 ps.setInt(1, idUsuario);
                 ps.setDouble(2, monto);
                 ps.setString(3, motivo.trim());
@@ -395,23 +395,23 @@ public class Admin extends javax.swing.JFrame implements Pantalla {
             return;
         }
 
-        int idMulta = (int) modeloMultas.getValueAt(fila, 0);
+        int idSancion = (int) modeloMultas.getValueAt(fila, 0);
         String usuario = modeloMultas.getValueAt(fila, 2).toString();
         String estadoActual = modeloMultas.getValueAt(fila, 6).toString();
 
         if (!"PENDIENTE".equalsIgnoreCase(estadoActual)) {
-            JOptionPane.showMessageDialog(this, "Esta multa ya se encuentra en estado: " + estadoActual);
+            JOptionPane.showMessageDialog(this, "Esta sanción ya se encuentra en estado: " + estadoActual);
             return;
         }
 
         int confirm = JOptionPane.showConfirmDialog(this,
-                "¿Deseas quitar/anular la multa #" + idMulta + " de " + usuario + "?",
+                "¿Deseas quitar/anular la multa #" + idSancion + " de " + usuario + "?",
                 "Confirmar Anulación", JOptionPane.YES_NO_OPTION);
         if (confirm != JOptionPane.YES_OPTION) return;
 
         try (PreparedStatement ps = Conexion.getInstance().getConnection().prepareStatement(
-                "UPDATE public.multa SET estado = 'ANULADA' WHERE id_multa = ?")) {
-            ps.setInt(1, idMulta);
+                "UPDATE public.sancion SET estado = 'ANULADA' WHERE id_sancion = ?")) {
+            ps.setInt(1, idSancion);
             ps.executeUpdate();
 
             JOptionPane.showMessageDialog(this, "Multa anulada. El usuario ya puede volver a pedir préstamos.");
@@ -444,4 +444,7 @@ public class Admin extends javax.swing.JFrame implements Pantalla {
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(() -> new Admin().setVisible(true));
     }
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    // End of variables declaration//GEN-END:variables
 }
