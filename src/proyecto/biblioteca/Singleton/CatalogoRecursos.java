@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+
 import proyecto.biblioteca.Conexion;
 import proyecto.biblioteca.modelo.Recurso;
 
@@ -24,8 +25,6 @@ public class CatalogoRecursos {
         }
         return instancia;
     }
-
-    // Recarga desde tus tablas reales de Supabase (public.libro y public.prestamo)
     public void sincronizarConBD() {
         listaRecursos.clear();
         String sql = "SELECT l.id_libro, l.titulo, " +"COALESCE(STRING_AGG(DISTINCT c.nombre_categoria, ', '), 'LIBRO') AS tipo, " +"CASE WHEN EXISTS (SELECT 1 FROM public.prestamo p " +"    WHERE p.id_libro = l.id_libro " +"    AND (p.fecha_devolucion IS NULL OR p.estado_devolucion = 'Prestado')) " +"THEN 'PRESTADO' ELSE 'DISPONIBLE' END AS estado " +"FROM public.libro l " +"LEFT JOIN public.libro_categoria lc ON l.id_libro = lc.id_libro " +"LEFT JOIN public.categoria c ON lc.id_categoria = c.id_categoria " +"GROUP BY l.id_libro, l.titulo ORDER BY l.id_libro";

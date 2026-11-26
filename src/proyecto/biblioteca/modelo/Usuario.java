@@ -10,9 +10,7 @@ public class Usuario {
     private int diasPlazoBase;
     private int maxRecursosSimultaneos;
 
-    public Usuario(String id, String codigoInstitucional, String nombreCompleto,
-                   String email, String rol, boolean bloqueado,
-                   int diasPlazoBase, int maxRecursosSimultaneos) {
+    public Usuario(String id, String codigoInstitucional, String nombreCompleto,String email, String rol, boolean bloqueado,int diasPlazoBase, int maxRecursosSimultaneos) {
         this.id = id;
         this.codigoInstitucional = codigoInstitucional;
         this.nombreCompleto = nombreCompleto;

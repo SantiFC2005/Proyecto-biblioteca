@@ -33,7 +33,7 @@ public class Inicio extends javax.swing.JFrame {
     }
 
     @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+
     private void initComponents() {
 
         jPanel3 = new javax.swing.JPanel();
@@ -74,7 +74,7 @@ public class Inicio extends javax.swing.JFrame {
 
         jPanel1.setBackground(new java.awt.Color(241, 245, 249));
 
-        jLabel1.setFont(new java.awt.Font("Arial", 1, 24)); // NOI18N
+        jLabel1.setFont(new java.awt.Font("Arial", 1, 24)); 
         jLabel1.setForeground(new java.awt.Color(36, 59, 83));
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("BIBLIOTECA DE ALEJANDRIA");
@@ -91,10 +91,10 @@ public class Inicio extends javax.swing.JFrame {
         jButton5.setText("Iniciar sesión");
         jButton5.addActionListener(this::jButton5ActionPerformed);
 
-        jLabel9.setFont(new java.awt.Font("Elephant", 0, 12)); // NOI18N
+        jLabel9.setFont(new java.awt.Font("Elephant", 0, 12)); 
         jLabel9.setText("CONTRASEÑA");
 
-        jLabel11.setFont(new java.awt.Font("Elephant", 0, 12)); // NOI18N
+        jLabel11.setFont(new java.awt.Font("Elephant", 0, 12)); 
         jLabel11.setText("CORREO");
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
@@ -141,13 +141,13 @@ public class Inicio extends javax.swing.JFrame {
         jButton6.setText("Regitrarse");
         jButton6.addActionListener(this::jButton6ActionPerformed);
 
-        jLabel12.setFont(new java.awt.Font("Elephant", 0, 12)); // NOI18N
+        jLabel12.setFont(new java.awt.Font("Elephant", 0, 12)); 
         jLabel12.setText("NUEVA CONTRASEÑA");
 
-        jLabel14.setFont(new java.awt.Font("Elephant", 0, 12)); // NOI18N
+        jLabel14.setFont(new java.awt.Font("Elephant", 0, 12));     
         jLabel14.setText("CORREO");
 
-        jLabel13.setFont(new java.awt.Font("Elephant", 0, 12)); // NOI18N
+        jLabel13.setFont(new java.awt.Font("Elephant", 0, 12)); 
         jLabel13.setText("CONFIRMAR CONTRASEÑA");
 
         Ccontraseña_txt.addActionListener(this::Ccontraseña_txtActionPerformed);
@@ -282,10 +282,10 @@ public class Inicio extends javax.swing.JFrame {
 
         pack();
         setLocationRelativeTo(null);
-    }// </editor-fold>//GEN-END:initComponents
+    }
 
     private void Ccontraseña_txtActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Ccontraseña_txtActionPerformed
-    }//GEN-LAST:event_Ccontraseña_txtActionPerformed
+    }
 
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
         String correo = correo_txt2.getText().trim();
@@ -367,9 +367,9 @@ public class Inicio extends javax.swing.JFrame {
 
         String sqlExiste = "SELECT 1 FROM usuario WHERE correo = ? OR documento = ?";
         String sqlInsert = "INSERT INTO usuario (nombre, documento, telefono, correo, contrasenia, fecha_nacimiento, id_rol, bloqueado) "
-                + "VALUES (?, ?, ?, ?, ?, ?, 3, false)"; // 3 = Estudiante
+                + "VALUES (?, ?, ?, ?, ?, ?, 3, false)";
 
-        // Uso del Patrón Singleton en Conexion (NO cerramos la conexión global con try-with-resources)
+    
         Connection con = Conexion.getInstance().getConnection();
         if (con == null) {
             JOptionPane.showMessageDialog(this, "No se pudo conectar a la base de datos.");
@@ -411,15 +411,15 @@ public class Inicio extends javax.swing.JFrame {
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Error al registrar: " + ex.getMessage());
         }
-    }//GEN-LAST:event_jButton6ActionPerformed
+    }
 
-    private void Ncontraseña_txtActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Ncontraseña_txtActionPerformed
-    }//GEN-LAST:event_Ncontraseña_txtActionPerformed
+    private void Ncontraseña_txtActionPerformed(java.awt.event.ActionEvent evt) {
+    }
 
-    private void correo_txt2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_correo_txt2ActionPerformed
-    }//GEN-LAST:event_correo_txt2ActionPerformed
+    private void correo_txt2ActionPerformed(java.awt.event.ActionEvent evt) {
+    }
 
-    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
+    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {
         String correo = correo_txt.getText().trim();
         String contrasenia = contraseña_txt1.getText();
 
@@ -445,7 +445,7 @@ public class Inicio extends javax.swing.JFrame {
                         return;
                     }
 
-                    // Verificar si fue bloqueado por el Administrador
+                    
                     if (bloqueado) {
                         String motivo = rs.getString("motivo_bloqueo");
                         JOptionPane.showMessageDialog(this,
@@ -455,7 +455,7 @@ public class Inicio extends javax.swing.JFrame {
                         return;
                     }
 
-                    // Configurar reglas según rol: 1 = Admin, 2 = Docente (30 días), 3 = Estudiante (7 días)
+                    
                     String nombreRol;
                     int diasPlazo;
                     int maxSimultaneos;
@@ -490,7 +490,7 @@ public class Inicio extends javax.swing.JFrame {
                             maxSimultaneos
                     );
 
-                    // Aplicación del Patrón Factory Method
+                
                     PantallaCreator creador = obtenerCreador(idRol);
                     if (creador != null) {
                         creador.abrirPantalla(usuarioLogueado);
@@ -506,13 +506,13 @@ public class Inicio extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Error en la consulta: " + ex.getMessage());
             logger.log(java.util.logging.Level.SEVERE, "Error en login", ex);
         }
-    }//GEN-LAST:event_jButton5ActionPerformed
+    }
 
-    private void contraseña_txt1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_contraseña_txt1ActionPerformed
-    }//GEN-LAST:event_contraseña_txt1ActionPerformed
+    private void contraseña_txt1ActionPerformed(java.awt.event.ActionEvent evt) {
+    }
 
-    private void correo_txtActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_correo_txtActionPerformed
-    }//GEN-LAST:event_correo_txtActionPerformed
+    private void correo_txtActionPerformed(java.awt.event.ActionEvent evt) {
+    }
 
     private PantallaCreator obtenerCreador(String idRol) {
         switch (idRol) {
@@ -541,8 +541,6 @@ public class Inicio extends javax.swing.JFrame {
 
         java.awt.EventQueue.invokeLater(() -> new Inicio().setVisible(true));
     }
-
-    // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField Ccontraseña_txt;
     private javax.swing.JTextField Ncontraseña_txt;
     private javax.swing.JTextField contraseña_txt1;
@@ -564,5 +562,5 @@ public class Inicio extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel jPanel7;
     private javax.swing.JTabbedPane jTabbedPane2;
-    // End of variables declaration//GEN-END:variables
+    
 }

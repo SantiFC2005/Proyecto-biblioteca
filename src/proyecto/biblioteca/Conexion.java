@@ -7,8 +7,6 @@ import java.sql.SQLException;
 public class Conexion {
     private static Conexion instancia;
     private Connection connection;
-
-    // Se agregaron las barras "//" después de jdbc:postgresql: y sslmode=require
     private static final String URL = "jdbc:postgresql://aws-1-us-east-2.pooler.supabase.com:5432/postgres?sslmode=require";
     private static final String USER = "postgres.tsgffqsqorqvjxwteffw";
     private static final String PASSWORD = "Santi_200520";

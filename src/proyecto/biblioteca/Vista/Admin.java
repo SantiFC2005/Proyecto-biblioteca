@@ -83,7 +83,7 @@ public class Admin extends javax.swing.JFrame implements Pantalla {
         panelSuperior.add(btnCerrarSesion, BorderLayout.EAST);
         add(panelSuperior, BorderLayout.NORTH);
 
-        // Contenedor de Pestañas
+        
         JTabbedPane tabs = new JTabbedPane();
         tabs.setFont(new Font("Segoe UI", Font.BOLD, 13));
 
@@ -99,7 +99,7 @@ public class Admin extends javax.swing.JFrame implements Pantalla {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Formulario superior de registro
+
         JPanel formPanel = new JPanel(new GridLayout(2, 6, 8, 8));
         formPanel.setBorder(BorderFactory.createTitledBorder("Registrar Nuevo Usuario"));
 
@@ -126,7 +126,6 @@ public class Admin extends javax.swing.JFrame implements Pantalla {
 
         panel.add(formPanel, BorderLayout.NORTH);
 
-        // Tabla central de usuarios
         String[] cols = {"ID", "Nombre", "Documento", "Correo", "Rol", "Estado", "Motivo Bloqueo"};
         modeloUsuarios = new DefaultTableModel(null, cols) {
             @Override
@@ -138,7 +137,6 @@ public class Admin extends javax.swing.JFrame implements Pantalla {
         tablaUsuarios.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         panel.add(new JScrollPane(tablaUsuarios), BorderLayout.CENTER);
 
-        // Botonera inferior
         JPanel botonesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 5));
 
         JButton btnRegistrar = new JButton("Registrar Usuario");
@@ -206,14 +204,10 @@ public class Admin extends javax.swing.JFrame implements Pantalla {
         return panel;
     }
 
-    // ==================== LÓGICA DE BASE DE DATOS (SUPABASE) ====================
-
     private void cargarTablaUsuarios() {
         modeloUsuarios.setRowCount(0);
-        String sql = "SELECT id_usuario, nombre, documento, correo, id_rol, bloqueado, motivo_bloqueo " +
-                     "FROM public.usuario ORDER BY id_usuario ASC";
-        try (Statement st = Conexion.getInstance().getConnection().createStatement();
-             ResultSet rs = st.executeQuery(sql)) {
+        String sql = "SELECT id_usuario, nombre, documento, correo, id_rol, bloqueado, motivo_bloqueo " +"FROM public.usuario ORDER BY id_usuario ASC";
+        try (Statement st = Conexion.getInstance().getConnection().createStatement();ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
                 String idRol = rs.getString("id_rol");
                 String rolTexto = "1".equals(idRol) ? "ADMINISTRADOR" : ("2".equals(idRol) ? "BIBLIOTECARIO" : "ESTUDIANTE");
@@ -247,8 +241,7 @@ public class Admin extends javax.swing.JFrame implements Pantalla {
             return;
         }
 
-        String sql = "INSERT INTO public.usuario (nombre, documento, telefono, correo, contrasenia, fecha_nacimiento, id_rol, bloqueado) " +
-                     "VALUES (?, ?, ?, ?, ?, CURRENT_DATE, ?, false)";
+        String sql = "INSERT INTO public.usuario (nombre, documento, telefono, correo, contrasenia, fecha_nacimiento, id_rol, bloqueado) " +"VALUES (?, ?, ?, ?, ?, CURRENT_DATE, ?, false)";
 
         try (PreparedStatement ps = Conexion.getInstance().getConnection().prepareStatement(sql)) {
             ps.setString(1, nombre);
@@ -312,11 +305,8 @@ public class Admin extends javax.swing.JFrame implements Pantalla {
 
     private void cargarTablaMultas() {
         modeloMultas.setRowCount(0);
-        String sql = "SELECT s.id_sancion, u.id_usuario, u.nombre, u.documento, s.valor, s.tipo, s.estado, s.fecha_registro " +
-                     "FROM public.sancion s JOIN public.usuario u ON s.id_usuario = u.id_usuario " +
-                     "ORDER BY s.id_sancion DESC";
-        try (Statement st = Conexion.getInstance().getConnection().createStatement();
-             ResultSet rs = st.executeQuery(sql)) {
+        String sql = "SELECT s.id_sancion, u.id_usuario, u.nombre, u.documento, s.valor, s.tipo, s.estado, s.fecha_registro " +"FROM public.sancion s JOIN public.usuario u ON s.id_usuario = u.id_usuario " +"ORDER BY s.id_sancion DESC";
+        try (Statement st = Conexion.getInstance().getConnection().createStatement();ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
                 modeloMultas.addRow(new Object[]{
                     rs.getInt("id_sancion"),
@@ -422,7 +412,6 @@ public class Admin extends javax.swing.JFrame implements Pantalla {
     }
 
     @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -439,12 +428,9 @@ public class Admin extends javax.swing.JFrame implements Pantalla {
         );
 
         pack();
-    }// </editor-fold>//GEN-END:initComponents
+    }
 
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(() -> new Admin().setVisible(true));
     }
-
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    // End of variables declaration//GEN-END:variables
 }
